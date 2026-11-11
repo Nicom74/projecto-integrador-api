@@ -21,7 +21,6 @@ class ConvenioController extends Controller
             'q' => 'nullable|string|max:100',
             'estado' => 'nullable|string|max:45',
             'tipo_instrumento_id' => 'nullable|integer|exists:tipo_instrumentos,id',
-            'unidad_id' => 'nullable|integer|exists:unidad_responsables,id',
             'fecha_desde' => 'nullable|date',
             'fecha_hasta' => 'nullable|date|after_or_equal:fecha_desde',
             'orden' => 'nullable|in:fecha_creacion,titulo,estado,codigo',
@@ -29,7 +28,7 @@ class ConvenioController extends Controller
             'por_pagina' => 'nullable|integer|min:1|max:50',
         ]);
 
-        return Convenio::with('tiposInstrumento')
+        return Convenio::with('tipoInstrumento')
             ->filtrar($filtros)
             ->orderBy($filtros['orden'] ?? 'fecha_creacion', $filtros['direccion'] ?? 'desc')
             ->paginate($filtros['por_pagina'] ?? 10)
@@ -42,23 +41,18 @@ class ConvenioController extends Controller
     public function store(Request $request)
     {
         $datos = $request->validate([
-            'fecha_creacion'    => 'required|date',
-            'titulo'            => 'required|string|max:45',
-            'codigo'            => 'required|string|max:45|unique:convenios,codigo',
-            'firma_gestor'      => 'nullable|string|max:45',
-            'firma_decano'      => 'nullable|string|max:45',
-            'convenio_padre_id' => 'nullable|exists:convenios,id',
-            'tipos_instrumento'   => 'array',
-            'tipos_instrumento.*' => 'exists:tipo_instrumentos,id',
+            'fecha_creacion'      => 'required|date',
+            'titulo'              => 'required|string|max:45',
+            'codigo'              => 'required|string|max:45|unique:convenios,codigo',
+            'firma_gestor'        => 'nullable|string|max:45',
+            'firma_decano'        => 'nullable|string|max:45',
+            'convenio_padre_id'   => 'nullable|exists:convenios,id',
+            'tipo_instrumento_id' => 'required|exists:tipo_instrumentos,id',
         ]);
 
         $convenio = Convenio::create($datos + ['estado' => 'borrador']);
 
-        if (isset($datos['tipos_instrumento'])) {
-            $convenio->tiposInstrumento()->sync($datos['tipos_instrumento']);
-        }
-
-        return response()->json($convenio->load('tiposInstrumento'), 201);
+        return response()->json($convenio->load('tipoInstrumento'), 201);    
     }
 
     /**
@@ -67,7 +61,7 @@ class ConvenioController extends Controller
     public function show(Convenio $convenio)
     {
         return $convenio->load([
-            'tiposInstrumento',
+            'tipoInstrumento',
             'representantes',
             'documentos',
             'historialEstados',
@@ -83,18 +77,17 @@ class ConvenioController extends Controller
     public function update(Request $request, Convenio $convenio)
     {
         $datos = $request->validate([
-            'fecha_creacion'    => 'sometimes|date',
-            'titulo'            => 'sometimes|string|max:45',
-            'codigo'            => 'sometimes|string|max:45|unique:convenios,codigo,' . $convenio->id,
-            'firma_gestor'      => 'nullable|string|max:45',
-            'firma_decano'      => 'nullable|string|max:45',
+            'fecha_creacion' => 'sometimes|date',
+            'titulo' => 'sometimes|string|max:45',
+            'codigo' => 'sometimes|string|max:45|unique:convenios,codigo,' . $convenio->id,
+            'firma_gestor' => 'nullable|string|max:45',
+            'firma_decano' => 'nullable|string|max:45',
             'convenio_padre_id' => 'nullable|exists:convenios,id',
-            'tipos_instrumento'   => 'array',
-            'tipos_instrumento.*' => 'exists:tipo_instrumentos,id',
+            'tipo_instrumento_id' => 'sometimes|exists:tipo_instrumentos,id',
 
             // cambio de estado
-            'estado'       => ['sometimes', Rule::in(array_keys(Convenio::TRANSICIONES))],
-            'fundamento'   => 'nullable|string|max:45',
+            'estado' => ['sometimes', Rule::in(array_keys(Convenio::TRANSICIONES))],
+            'fundamento' => 'nullable|string|max:45',
             'documento_id' => ['nullable', Rule::exists('documentos', 'id')->where('convenio_id', $convenio->id)],
         ]);
 
@@ -124,11 +117,7 @@ class ConvenioController extends Controller
                 }
             }
 
-            $convenio->update(Arr::except($datos, ['fundamento', 'documento_id', 'tipos_instrumento']));
-
-            if (isset($datos['tipos_instrumento'])) {
-                $convenio->tiposInstrumento()->sync($datos['tipos_instrumento']);
-            }
+            $convenio->update(Arr::except($datos, ['fundamento', 'documento_id']));
 
             if ($cambiaEstado) {
                 $convenio->historialEstados()->create([
@@ -144,7 +133,7 @@ class ConvenioController extends Controller
             return $convenio;
         });
 
-        return $convenio->load('tiposInstrumento');
+        return $convenio->load('tipoInstrumento');
     }
 
     /**
@@ -152,6 +141,11 @@ class ConvenioController extends Controller
      */
     public function destroy(Convenio $convenio)
     {
+
+        if ($convenio->adendas()->exists()) {
+            return response()->json(['message' => 'No se puede eliminar: tiene adendas asociadas.'], 409);
+        }
+
         $convenio->delete();
 
         return response()->noContent();

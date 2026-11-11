@@ -17,10 +17,10 @@ class Convenio extends Model
         'archivado'  => [],
     ];
     protected $fillable = ['fecha_creacion', 'firma_gestor', 'firma_decano',
-                           'titulo', 'estado', 'codigo', 'convenio_padre_id'];
+                           'titulo', 'estado', 'codigo', 'convenio_padre_id', 'tipo_instrumento_id'];
 
     public function padre() { return $this->belongsTo(Convenio::class, 'convenio_padre_id'); }
-    public function tiposInstrumento() { return $this->belongsToMany(TipoInstrumento::class); }
+    public function tipoInstrumento() { return $this->belongsTo(TipoInstrumento::class); }    
     public function representantes() { return $this->belongsToMany(Representante::class, 'partes'); }
 
     public function documento() { return $this->hasOne(Documento::class); }
@@ -41,9 +41,7 @@ class Convenio extends Model
             // Estado
             ->when($f['estado'] ?? null, fn ($q, $estado) => $q->where('estado', $estado))
             // Tipo de instrumento
-            ->when($f['tipo_instrumento_id'] ?? null, function ($q, $tipo) {
-                $q->whereHas('tiposInstrumento', fn ($q) => $q->where('tipo_instrumentos.id', $tipo));
-            })
+            ->when($f['tipo_instrumento_id'] ?? null, fn ($q, $tipo) => $q->where('tipo_instrumento_id', $tipo))
             // Unidad responsable
             ->when($f['unidad_id'] ?? null, fn ($q, $unidad) => $q->where('unidad_responsable_id', $unidad))
             // Rango de fechas

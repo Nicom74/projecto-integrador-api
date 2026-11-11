@@ -15,16 +15,16 @@ class UserSeeder extends Seeder
     public function run(): void
     {
          $usuarios = [
-            ['Admin Demo', 'admin@test.com', 'administracion'],
-            ['Gestor Demo', 'gestor@test.com', 'gestion'],
-            ['Revisor Demo', 'revisor@test.com', 'revision'],
-            ['Consulta Demo', 'consulta@test.com', 'consulta'],
+            ['Admin Demo',    'admin@test.com',    'administracion', '+54 2302 100001'],
+            ['Gestor Demo',   'gestor@test.com',   'gestion',        '+54 2302 100002'],
+            ['Revisor Demo',  'revisor@test.com',  'revision',       '+54 2302 100003'],
+            ['Consulta Demo', 'consulta@test.com', 'consulta',       '+54 2302 100004'],
         ];
 
-        foreach ($usuarios as [$name, $email, $rol]) {
+        foreach ($usuarios as [$name, $email, $rol, $tel]) {
             User::firstOrCreate(
                 ['email' => $email],
-                ['name' => $name, 'password' => Hash::make('123456'), 'rol' => $rol]
+                ['name' => $name, 'telefono' => $tel, 'password' => Hash::make('123456'), 'rol' => $rol]
             );
         }
     }

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('estado', 45);
             $table->string('codigo', 45)->unique();
             $table->foreignId('convenio_padre_id')->nullable()->constrained('convenios');
+            $table->foreignId('tipo_instrumento_id')->constrained('tipo_instrumentos');
             $table->timestamps();
         });
     }

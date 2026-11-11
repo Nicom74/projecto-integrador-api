@@ -45,28 +45,28 @@ class ConvenioSeeder extends Seeder
         foreach ($convenios as $d) {
             $firmado = $d['estado'] === 'firmado';
 
+            $tipo = TipoInstrumento::where('nombre', $d['tipo'][0])
+                ->where('categoria', $d['tipo'][1])
+                ->firstOrFail();
+
             $convenio = Convenio::firstOrCreate(
                 ['codigo' => $d['codigo']],
                 [
-                    'titulo' => $d['titulo'],
-                    'fecha_creacion' => $d['fecha'],
-                    'estado' => $d['estado'],
-                    'firma_gestor' => $firmado ? 'Gestor Demo' : null,
-                    'firma_decano' => $firmado ? 'Decano Demo' : null,
-                    'convenio_padre_id' => isset($d['padre'])
+                    'titulo'              => $d['titulo'],
+                    'fecha_creacion'      => $d['fecha'],
+                    'estado'              => $d['estado'],
+                    'firma_gestor'        => $firmado ? 'Gestor Demo' : null,
+                    'firma_decano'        => $firmado ? 'Decano Demo' : null,
+                    'tipo_instrumento_id' => $tipo->id,
+                    'convenio_padre_id'   => isset($d['padre'])
                         ? Convenio::where('codigo', $d['padre'])->value('id')
                         : null,
                 ]
             );
 
             if (! $convenio->wasRecentlyCreated) {
-                continue; // ya existía: no duplicar sus datos relacionados
+                continue;
             }
-
-            $tipo = TipoInstrumento::where('nombre', $d['tipo'][0])
-                ->where('categoria', $d['tipo'][1])
-                ->firstOrFail();
-            $convenio->tiposInstrumento()->attach($tipo->id);
 
             foreach ($d['reps'] as $email) {
                 Parte::create([
