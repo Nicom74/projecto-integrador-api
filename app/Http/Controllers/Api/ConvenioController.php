@@ -44,8 +44,8 @@ class ConvenioController extends Controller
             'fecha_creacion'      => 'required|date',
             'titulo'              => 'required|string|max:45',
             'codigo'              => 'required|string|max:45|unique:convenios,codigo',
-            'firma_gestor'        => 'nullable|string|max:45',
-            'firma_decano'        => 'nullable|string|max:45',
+            'firma_gestor' => 'sometimes|boolean',
+            'firma_decano' => 'sometimes|boolean',
             'convenio_padre_id'   => 'nullable|exists:convenios,id',
             'tipo_instrumento_id' => 'required|exists:tipo_instrumentos,id',
         ]);
@@ -80,8 +80,8 @@ class ConvenioController extends Controller
             'fecha_creacion' => 'sometimes|date',
             'titulo' => 'sometimes|string|max:45',
             'codigo' => 'sometimes|string|max:45|unique:convenios,codigo,' . $convenio->id,
-            'firma_gestor' => 'nullable|string|max:45',
-            'firma_decano' => 'nullable|string|max:45',
+            'firma_gestor' => 'sometimes|boolean',
+            'firma_decano' => 'sometimes|boolean',
             'convenio_padre_id' => 'nullable|exists:convenios,id',
             'tipo_instrumento_id' => 'sometimes|exists:tipo_instrumentos,id',
 

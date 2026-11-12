@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('convenios', function (Blueprint $table) {
             $table->id();
             $table->date('fecha_creacion');
-            $table->string('firma_gestor', 45)->nullable();
-            $table->string('firma_decano', 45)->nullable();
+            $table->boolean('firma_gestor')->default(false);
+            $table->boolean('firma_decano')->default(false);
             $table->string('titulo', 45);
             $table->string('estado', 45);
             $table->string('codigo', 45)->unique();

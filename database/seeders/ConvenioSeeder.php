@@ -55,8 +55,8 @@ class ConvenioSeeder extends Seeder
                     'titulo'              => $d['titulo'],
                     'fecha_creacion'      => $d['fecha'],
                     'estado'              => $d['estado'],
-                    'firma_gestor'        => $firmado ? 'Gestor Demo' : null,
-                    'firma_decano'        => $firmado ? 'Decano Demo' : null,
+                    'firma_gestor'        => $firmado,
+                    'firma_decano'        => $firmado,
                     'tipo_instrumento_id' => $tipo->id,
                     'convenio_padre_id'   => isset($d['padre'])
                         ? Convenio::where('codigo', $d['padre'])->value('id')
