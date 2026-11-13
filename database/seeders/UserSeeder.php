@@ -19,6 +19,7 @@ class UserSeeder extends Seeder
             ['Gestor Demo',   'gestor@test.com',   'gestion',        '+54 2302 100002'],
             ['Revisor Demo',  'revisor@test.com',  'revision',       '+54 2302 100003'],
             ['Consulta Demo', 'consulta@test.com', 'consulta',       '+54 2302 100004'],
+            ['Decano Demo',   'decano@test.com',   'decano',         '+54 2302 100005'],
         ];
 
         foreach ($usuarios as [$name, $email, $rol, $tel]) {

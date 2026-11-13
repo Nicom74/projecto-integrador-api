@@ -40,6 +40,30 @@ class ConvenioSeeder extends Seeder
             ['codigo' => 'CONV-2026-005', 'titulo' => 'Adenda de prórroga - Marco Municipio', 'fecha' => '2026-10-20',
              'estado' => 'borrador', 'tipo' => ['Adenda', 'Adenda'],
              'reps' => [], 'padre' => 'CONV-2026-001'],
+
+            ['codigo' => 'CONV-2026-101', 'titulo' => 'Marco de colaboración con Univ. Ejemplo', 'fecha' => '2026-10-02',
+             'estado' => 'aprobado', 'tipo' => ['Convenio marco', 'Colaboración'],
+             'reps' => ['rep.ing@test.com', 'rep.tecno@test.com']],
+
+            ['codigo' => 'CONV-2026-102', 'titulo' => 'Específico de investigación aplicada', 'fecha' => '2026-10-05',
+             'estado' => 'aprobado', 'tipo' => ['Convenio específico', 'Colaboración'],
+             'reps' => ['rep.ing@test.com', 'rep.tecno@test.com']],
+
+            ['codigo' => 'CONV-2026-103', 'titulo' => 'Marco de pasantías con Empresa Demo', 'fecha' => '2026-10-09',
+             'estado' => 'aprobado', 'tipo' => ['Convenio marco', 'Pasantía'],
+             'reps' => ['rep.ing@test.com', 'rep.tecno@test.com']],
+
+            ['codigo' => 'CONV-2026-104', 'titulo' => 'Pasantía en soporte técnico', 'fecha' => '2026-10-14',
+             'estado' => 'aprobado', 'tipo' => ['Convenio específico', 'Pasantía'],
+             'reps' => ['rep.ing@test.com', 'rep.tecno@test.com'], 'pasantia' => true],
+
+            ['codigo' => 'CONV-2026-105', 'titulo' => 'Adenda de ampliación - Marco Univ.', 'fecha' => '2026-10-22',
+             'estado' => 'aprobado', 'tipo' => ['Adenda', 'Adenda'],
+             'reps' => ['rep.ing@test.com', 'rep.tecno@test.com'], 'padre' => 'CONV-2026-101'],
+
+            ['codigo' => 'CONV-2026-106', 'titulo' => 'Marco de transferencia tecnológica', 'fecha' => '2026-10-30',
+             'estado' => 'aprobado', 'tipo' => ['Convenio marco', 'Colaboración'],
+             'reps' => ['rep.ing@test.com', 'rep.tecno@test.com']],
         ];
 
         foreach ($convenios as $d) {
