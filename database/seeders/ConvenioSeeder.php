@@ -23,18 +23,22 @@ class ConvenioSeeder extends Seeder
         $convenios = [
             ['codigo' => 'CONV-2026-001', 'titulo' => 'Marco de colaboración con el Municipio', 'fecha' => '2026-02-10',
              'estado' => 'firmado', 'tipo' => ['Convenio marco', 'Colaboración'],
+             'vence' => '2028-02-10',
              'reps' => ['rep.ing@test.com', 'rep.muni@test.com']],
 
             ['codigo' => 'CONV-2026-002', 'titulo' => 'Específico de capacitación con TecnoPampa', 'fecha' => '2026-03-05',
              'estado' => 'aprobado', 'tipo' => ['Convenio específico', 'Colaboración'],
+             'vence' => '2026-12-15',
              'reps' => ['rep.ing@test.com', 'rep.tecno@test.com']],
 
             ['codigo' => 'CONV-2026-003', 'titulo' => 'Marco de pasantías con TecnoPampa', 'fecha' => '2026-04-01',
              'estado' => 'firmado', 'tipo' => ['Convenio marco', 'Pasantía'],
+             'vence' => '2026-10-01',
              'reps' => ['rep.ing@test.com', 'rep.tecno@test.com']],
 
             ['codigo' => 'CONV-2026-004', 'titulo' => 'Pasantía en desarrollo de software', 'fecha' => '2026-09-15',
              'estado' => 'revision', 'tipo' => ['Convenio específico', 'Pasantía'],
+             'vence' => '2027-05-31',
              'reps' => ['rep.ing@test.com', 'rep.tecno@test.com'], 'pasantia' => true],
 
             ['codigo' => 'CONV-2026-005', 'titulo' => 'Adenda de prórroga - Marco Municipio', 'fecha' => '2026-10-20',
@@ -79,7 +83,7 @@ class ConvenioSeeder extends Seeder
                     'titulo'              => $d['titulo'],
                     'fecha_creacion'      => $d['fecha'],
                     'estado'              => $d['estado'],
-                    'firma_gestor'        => $firmado,
+                    'fecha_vencimiento' => $d['vence'] ?? null,
                     'firma_decano'        => $firmado,
                     'tipo_instrumento_id' => $tipo->id,
                     'convenio_padre_id'   => isset($d['padre'])

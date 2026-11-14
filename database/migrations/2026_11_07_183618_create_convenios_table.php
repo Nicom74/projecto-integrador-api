@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('convenios', function (Blueprint $table) {
             $table->id();
             $table->date('fecha_creacion');
-            $table->boolean('firma_gestor')->default(false);
             $table->boolean('firma_decano')->default(false);
             $table->string('titulo', 45);
             $table->string('estado', 45);
             $table->string('codigo', 45)->unique();
+            $table->date('fecha_vencimiento')->nullable();
             $table->foreignId('convenio_padre_id')->nullable()->constrained('convenios');
             $table->foreignId('tipo_instrumento_id')->constrained('tipo_instrumentos');
             $table->timestamps();

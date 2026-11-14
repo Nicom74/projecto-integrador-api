@@ -22,10 +22,15 @@ class Convenio extends Model
     ];
 
     protected $fillable = [
-        'fecha_creacion', 'firma_gestor', 'firma_decano', 'titulo',
+        'fecha_creacion', 'fecha_vencimiento', 'firma_decano', 'titulo',
         'estado', 'codigo', 'convenio_padre_id', 'tipo_instrumento_id',
     ];
 
+    protected $casts = [
+        'firma_decano'      => 'boolean',
+        'fecha_creacion'    => 'date:Y-m-d',
+        'fecha_vencimiento' => 'date:Y-m-d',
+    ];
     // Relaciones
     public function tipoInstrumento() { return $this->belongsTo(TipoInstrumento::class); }
     public function padre()           { return $this->belongsTo(Convenio::class, 'convenio_padre_id'); }
@@ -51,6 +56,7 @@ class Convenio extends Model
             ->when($f['estado'] ?? null, fn ($q, $estado) => $q->where('estado', $estado))
             ->when($f['tipo_instrumento_id'] ?? null, fn ($q, $tipo) => $q->where('tipo_instrumento_id', $tipo))
             ->when($f['fecha_desde'] ?? null, fn ($q, $d) => $q->whereDate('fecha_creacion', '>=', $d))
-            ->when($f['fecha_hasta'] ?? null, fn ($q, $h) => $q->whereDate('fecha_creacion', '<=', $h));
+            ->when($f['fecha_hasta'] ?? null, fn ($q, $h) => $q->whereDate('fecha_creacion', '<=', $h))
+            ->when($f['vence_antes'] ?? null, fn ($q, $d) => $q->whereDate('fecha_vencimiento', '<=', $d));
     }
 }

@@ -25,6 +25,7 @@ class ConvenioController extends Controller
             'fecha_hasta' => 'nullable|date|after_or_equal:fecha_desde',
             'orden' => 'nullable|in:fecha_creacion,titulo,estado,codigo',
             'direccion' => 'nullable|in:asc,desc',
+            'vence_antes' => 'nullable|date',
             'por_pagina' => 'nullable|integer|min:1|max:50',
         ]);
 
@@ -41,11 +42,11 @@ class ConvenioController extends Controller
     public function store(Request $request)
     {
         $datos = $request->validate([
-            'fecha_creacion'      => 'required|date',
-            'titulo'              => 'required|string|max:45',
-            'codigo'              => 'required|string|max:45|unique:convenios,codigo',
-            'firma_gestor' => 'sometimes|boolean',
+            'fecha_creacion' => 'required|date',
+            'titulo' => 'required|string|max:45',
+            'codigo' => 'required|string|max:45|unique:convenios,codigo',
             'firma_decano' => 'sometimes|boolean',
+            'fecha_vencimiento' => 'nullable|date|after_or_equal:fecha_creacion',
             'convenio_padre_id'   => 'nullable|exists:convenios,id',
             'tipo_instrumento_id' => 'required|exists:tipo_instrumentos,id',
         ]);
@@ -80,8 +81,8 @@ class ConvenioController extends Controller
             'fecha_creacion' => 'sometimes|date',
             'titulo' => 'sometimes|string|max:45',
             'codigo' => 'sometimes|string|max:45|unique:convenios,codigo,' . $convenio->id,
-            'firma_gestor' => 'sometimes|boolean',
             'firma_decano' => 'sometimes|boolean',
+            'fecha_vencimiento' => 'nullable|date',
             'convenio_padre_id' => 'nullable|exists:convenios,id',
             'tipo_instrumento_id' => 'sometimes|exists:tipo_instrumentos,id',
 
