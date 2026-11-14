@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-         $usuarios = [
+        $usuarios = [
             ['Admin Demo',    'admin@test.com',    'administracion', '+54 2302 100001'],
             ['Gestor Demo',   'gestor@test.com',   'gestion',        '+54 2302 100002'],
             ['Revisor Demo',  'revisor@test.com',  'revision',       '+54 2302 100003'],
