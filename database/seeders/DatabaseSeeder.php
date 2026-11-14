@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             RepresentanteSeeder::class,
             PersonaVinculadaSeeder::class,
             ConvenioSeeder::class,
+            NotificacionSeeder::class,
         ]);
     }
 }

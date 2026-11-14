@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\DetallePasantiaController;
 use App\Http\Controllers\Api\TipoInstrumentoController;
 use App\Http\Controllers\Api\UnidadResponsableController;
 use App\Http\Controllers\Api\PersonaVinculadaController;
+use App\Http\Controllers\Api\NotificacionController;
+
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -31,4 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('convenios/{convenio}/pasantia', [DetallePasantiaController::class, 'update']);
     Route::delete('convenios/{convenio}/pasantia', [DetallePasantiaController::class, 'destroy']);
     Route::apiResource('personas', PersonaVinculadaController::class)->parameters(['personas' => 'persona']);
+    //lo nuevo de notificaciones 
+    Route::get('notificaciones', [NotificacionController::class, 'index']);
+    Route::post('notificaciones/leidas', [NotificacionController::class, 'marcarTodas']);
+    Route::post('notificaciones/{notificacion}/leida', [NotificacionController::class, 'marcarLeida']);
 });
