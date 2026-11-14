@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\PersonaVinculadaController;
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('convenios', ConvenioController::class); //Aca genera todas las rutas para ver, crear, eliminar, modificar los convenios (aca, al modificar un convenio y cambiar el estado se guarda tambien en HistorialEstado)
     Route::apiResource('documentos', DocumentoController::class)->except('update');
