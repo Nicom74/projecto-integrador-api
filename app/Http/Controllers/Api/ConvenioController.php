@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Api\Convenio;
+use App\Models\Api\Representante;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -29,7 +31,7 @@ class ConvenioController extends Controller
             'por_pagina' => 'nullable|integer|min:1|max:50',
         ]);
 
-        return Convenio::with('tipoInstrumento')
+        return Convenio::with(['tipoInstrumento', 'unidad', 'revisor'])
             ->filtrar($filtros)
             ->orderBy($filtros['orden'] ?? 'fecha_creacion', $filtros['direccion'] ?? 'desc')
             ->paginate($filtros['por_pagina'] ?? 10)
@@ -42,18 +44,72 @@ class ConvenioController extends Controller
     public function store(Request $request)
     {
         $datos = $request->validate([
-            'fecha_creacion' => 'required|date',
-            'titulo' => 'required|string|max:45',
-            'codigo' => 'required|string|max:45|unique:convenios,codigo',
-            'firma_decano' => 'sometimes|boolean',
-            'fecha_vencimiento' => 'nullable|date|after_or_equal:fecha_creacion',
-            'convenio_padre_id'   => 'nullable|exists:convenios,id',
+            'titulo' => 'required|string|max:255',
+            'fecha_vencimiento' => 'nullable|date',
+            'convenio_padre_id' => 'nullable|exists:convenios,id',
             'tipo_instrumento_id' => 'required|exists:tipo_instrumentos,id',
+            'unidad_id' => 'required|exists:unidad_responsables,id',
+            'representantes' => 'sometimes|array',
+            'representantes.*.nombre' => 'nullable|string|max:45',
+            'representantes.*.apellido' => 'nullable|string|max:45',
+            'representantes.*.cargo' => 'nullable|string|max:45',
+            'representantes.*.email' => 'nullable|email|max:45',
+            'representantes.*.dni' => 'nullable|string|max:45',
+            'representantes.*.cuil' => 'nullable|string|max:45',
+            'detalle_pasantia' => 'sometimes|array',
+            'detalle_pasantia.fecha_inicio_pasantia' => 'nullable|date',
+            'detalle_pasantia.fecha_fin_pasantia' => [
+                'nullable',
+                'date',
+                'after_or_equal:detalle_pasantia.fecha_inicio_pasantia',
+            ],
+            'detalle_pasantia.carga_horaria_semanal' => 'nullable|numeric|min:0',
+            'detalle_pasantia.asignacion_estimulo' => 'nullable|string|max:45',
         ]);
 
-        $convenio = Convenio::create($datos + ['estado' => 'borrador']);
+        $convenio = DB::transaction(function () use ($datos) {
+            $convenio = Convenio::create([
+                'fecha_creacion' => now()->toDateString(),
+                'titulo' => $datos['titulo'],
+                'codigo' => sprintf('CONV-%s-%s', now()->format('Y'), Str::upper(Str::random(8))),
+                'estado' => 'borrador',
+                'fecha_vencimiento' => $datos['fecha_vencimiento'] ?? null,
+                'convenio_padre_id' => $datos['convenio_padre_id'] ?? null,
+                'tipo_instrumento_id' => $datos['tipo_instrumento_id'],
+                'unidad_responsable_id' => $datos['unidad_id'],
+            ]);
 
-        return response()->json($convenio->load('tipoInstrumento'), 201);    
+            foreach ($datos['representantes'] ?? [] as $representante) {
+                if (! collect($representante)->contains(fn ($valor) => filled($valor))) {
+                    continue;
+                }
+
+                $nuevoRepresentante = Representante::create([
+                    'nombre' => $representante['nombre'] ?? null,
+                    'apellido' => $representante['apellido'] ?? null,
+                    'cargo' => $representante['cargo'] ?? null,
+                    'email' => $representante['email'] ?? null,
+                    'dni' => $representante['dni'] ?? null,
+                    'cuil' => $representante['cuil'] ?? null,
+                    'unidad_responsable_id' => $datos['unidad_id'],
+                ]);
+                $convenio->representantes()->attach($nuevoRepresentante);
+            }
+
+            $detalle = $datos['detalle_pasantia'] ?? [];
+            if (collect($detalle)->contains(fn ($valor) => filled($valor))) {
+                $convenio->detallePasantia()->create([
+                    'fecha_inicio' => $detalle['fecha_inicio_pasantia'] ?? null,
+                    'fecha_fin' => $detalle['fecha_fin_pasantia'] ?? null,
+                    'carga_horaria_semanal' => $detalle['carga_horaria_semanal'] ?? null,
+                    'asignacion_estimulo' => $detalle['asignacion_estimulo'] ?? null,
+                ]);
+            }
+
+            return $convenio->load(['tipoInstrumento', 'unidad', 'representantes', 'detallePasantia']);
+        });
+
+        return response()->json($convenio, 201);
     }
 
     /**
@@ -63,6 +119,8 @@ class ConvenioController extends Controller
     {
         return $convenio->load([
             'tipoInstrumento',
+            'unidad',
+            'revisor',
             'representantes',
             'documentos',
             'historialEstados',
@@ -79,12 +137,17 @@ class ConvenioController extends Controller
     {
         $datos = $request->validate([
             'fecha_creacion' => 'sometimes|date',
-            'titulo' => 'sometimes|string|max:45',
+            'titulo' => 'sometimes|string|max:255',
             'codigo' => 'sometimes|string|max:45|unique:convenios,codigo,' . $convenio->id,
             'firma_decano' => 'sometimes|boolean',
             'fecha_vencimiento' => 'nullable|date',
             'convenio_padre_id' => 'nullable|exists:convenios,id',
             'tipo_instrumento_id' => 'sometimes|exists:tipo_instrumentos,id',
+            'revisor_id' => [
+                'required_if:estado,revision',
+                'nullable',
+                Rule::exists('users', 'id')->where('rol', 'revision'),
+            ],
 
             // cambio de estado
             'estado' => ['sometimes', Rule::in(array_keys(Convenio::TRANSICIONES))],
@@ -116,6 +179,10 @@ class ConvenioController extends Controller
                         'estado' => ['Para aprobar el convenio deben existir al menos dos partes.'],
                     ]);
                 }
+
+                if ($datos['estado'] === 'borrador') {
+                    $datos['revisor_id'] = null;
+                }
             }
 
             $convenio->update(Arr::except($datos, ['fundamento', 'documento_id']));
@@ -134,7 +201,7 @@ class ConvenioController extends Controller
             return $convenio;
         });
 
-        return $convenio->load('tipoInstrumento');
+        return $convenio->load(['tipoInstrumento', 'unidad', 'revisor']);
     }
 
     /**

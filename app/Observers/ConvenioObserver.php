@@ -12,7 +12,7 @@ class ConvenioObserver
     private const ROL_DESTINATARIO = 'decano';
 
     // Roles ADICIONALES según el evento (el decano se notifica siempre, además de estos)
-    private const ROLES_NUEVO_CONVENIO = ['revision', 'administracion'];
+    private const ROLES_NUEVO_CONVENIO = ['gestion', 'revision', 'administracion'];
     private const ROLES_CAMBIO_DATOS   = ['gestion'];
 
     // Cuando cambia el estado, a quién más le interesa el nuevo estado
@@ -63,7 +63,15 @@ class ConvenioObserver
             $extra = self::ROLES_CAMBIO_DATOS;
         }
 
-        $this->notificar($convenio, 'cambio_datos', 'Cambio en un convenio', $mensaje, $extra);
+        $destinatarioId = $convenio->estado === 'revision' ? $convenio->revisor_id : null;
+        $this->notificar(
+            $convenio,
+            'cambio_datos',
+            'Cambio en un convenio',
+            $mensaje,
+            $extra,
+            $destinatarioId
+        );
     }
 
     private function notificar(
@@ -71,7 +79,8 @@ class ConvenioObserver
         string $tipo,
         string $titulo,
         string $mensaje,
-        array $rolesExtra = []   // opcional: los llamados viejos siguen funcionando
+        array $rolesExtra = [],
+        ?int $destinatarioId = null
     ): void {
         // En seeders y tinker no se generan notificaciones.
         if (app()->runningInConsole()) {
@@ -85,6 +94,14 @@ class ConvenioObserver
         $roles = array_values(array_unique(array_merge([self::ROL_DESTINATARIO], $rolesExtra)));
 
         User::whereIn('rol', $roles)
+            ->when(
+                $destinatarioId,
+                fn ($q) => $q->where(
+                    fn ($destinatarios) => $destinatarios
+                        ->where('rol', self::ROL_DESTINATARIO)
+                        ->orWhere('id', $destinatarioId)
+                )
+            )
             ->when($autor, fn ($q) => $q->where('id', '!=', $autor))
             ->get()
             ->each(fn ($usuario) => Notificacion::create([
