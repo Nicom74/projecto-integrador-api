@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Api\Representante;
 use Illuminate\Http\Request;
 
 class RepresentanteController extends Controller
@@ -21,10 +22,13 @@ class RepresentanteController extends Controller
     public function store(Request $request)
     {
         $datos = $request->validate([
-            'nombre' => 'required|string|max:45',
-            'email' => 'required|email|max:45',
-            'cuil' => 'required|string|max:45',
-            'telefono' => 'required|string|max:45',
+            'nombre' => 'nullable|string|max:45',
+            'apellido' => 'nullable|string|max:45',
+            'cargo' => 'nullable|string|max:45',
+            'dni' => 'nullable|string|max:45',
+            'email' => 'nullable|email|max:45',
+            'cuil' => 'nullable|string|max:45',
+            'telefono' => 'nullable|string|max:45',
             'unidad_responsable_id' => 'required|exists:unidad_responsables,id',
         ]);
 
@@ -45,10 +49,13 @@ class RepresentanteController extends Controller
     public function update(Request $request, Representante $representante)
     {
         $datos = $request->validate([
-            'nombre' => 'sometimes|string|max:45',
-            'email' => 'sometimes|email|max:45',
-            'cuil' => 'sometimes|string|max:45',
-            'telefono' => 'sometimes|string|max:45',
+            'nombre' => 'sometimes|nullable|string|max:45',
+            'apellido' => 'sometimes|nullable|string|max:45',
+            'cargo' => 'sometimes|nullable|string|max:45',
+            'dni' => 'sometimes|nullable|string|max:45',
+            'email' => 'sometimes|nullable|email|max:45',
+            'cuil' => 'sometimes|nullable|string|max:45',
+            'telefono' => 'sometimes|nullable|string|max:45',
             'unidad_responsable_id' => 'sometimes|exists:unidad_responsables,id',
         ]);
 
