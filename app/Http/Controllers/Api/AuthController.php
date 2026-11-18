@@ -31,6 +31,19 @@ class AuthController extends Controller
         ]);
     }
 
+    // NUEVO: Agregamos este método para que responda a la ruta /me y me deje de tirar ese error pesado
+    public function me(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'rol' => $user->rol ?? 'gestion', // evuelve el rol del usuario logueado
+        ]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

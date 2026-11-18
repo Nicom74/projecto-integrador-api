@@ -47,4 +47,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function revisores()
+    {
+        return User::where('rol', 'revision')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+    }
 }
