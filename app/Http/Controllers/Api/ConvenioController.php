@@ -31,7 +31,14 @@ class ConvenioController extends Controller
             'por_pagina' => 'nullable|integer|min:1|max:50',
         ]);
 
-        return Convenio::with(['tipoInstrumento', 'unidad', 'revisor'])
+        return Convenio::with([
+                'tipoInstrumento', 
+                'unidad', 
+                'revisor',
+                'representantes',
+                'historialEstados',
+                'detallePasantia',
+            ])
             ->filtrar($filtros)
             ->orderBy($filtros['orden'] ?? 'fecha_creacion', $filtros['direccion'] ?? 'desc')
             ->paginate($filtros['por_pagina'] ?? 10)
