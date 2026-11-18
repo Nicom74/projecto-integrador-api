@@ -79,6 +79,7 @@ class ConvenioController extends Controller
     {
         $datos = $request->validate([
             'fecha_creacion' => 'sometimes|date',
+            'revisor_id' => ['nullable', Rule::exists('users', 'id')->where('rol', 'revision')],
             'titulo' => 'sometimes|string|max:45',
             'codigo' => 'sometimes|string|max:45|unique:convenios,codigo,' . $convenio->id,
             'firma_decano' => 'sometimes|boolean',
@@ -118,7 +119,10 @@ class ConvenioController extends Controller
                 }
             }
 
-            $convenio->update(Arr::except($datos, ['fundamento', 'documento_id']));
+            $convenio->revisorAsignado  = $datos['revisor_id'] ?? null;
+            $convenio->fundamentoCambio = $datos['fundamento'] ?? null;
+
+            $convenio->update(Arr::except($datos, ['fundamento', 'documento_id', 'revisor_id']));
 
             if ($cambiaEstado) {
                 $convenio->historialEstados()->create([
