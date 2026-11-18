@@ -22,6 +22,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/manage', [UserController::class, 'manageIndex']);
+    Route::put('/users/manage/{user}', [UserController::class, 'update']);
+    Route::delete('/users/manage/{user}', [UserController::class, 'destroy']);
     Route::apiResource('convenios', ConvenioController::class); //Aca genera todas las rutas para ver, crear, eliminar, modificar los convenios (aca, al modificar un convenio y cambiar el estado se guarda tambien en HistorialEstado)
     Route::apiResource('documentos', DocumentoController::class)->except('update');
     Route::get('documentos/{documento}/download', [DocumentoController::class, 'download']); //Para descargar documentos, se guardan en storage/documentos, esto es temporal porque por ahora no se donde guardarlos.
