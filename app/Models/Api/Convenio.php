@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Convenio extends Model
 {
+    public ?int $revisorAsignado = null;
+    public ?string $fundamentoCambio = null;
+
     public const TRANSICIONES = [
         'borrador'   => ['revision'],
         'revision'   => ['borrador', 'aprobado'],

@@ -39,4 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('notificaciones', [NotificacionController::class, 'index']);
     Route::post('notificaciones/leidas', [NotificacionController::class, 'marcarTodas']);
     Route::post('notificaciones/{notificacion}/leida', [NotificacionController::class, 'marcarLeida']);
+
+    Route::get('revisores', [UserController::class, 'revisores']);
+
+    Route::apiResource('users', UserController::class)->only(['index']);
 });

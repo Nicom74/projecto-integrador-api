@@ -57,6 +57,23 @@ class ConvenioObserver
 
         if ($convenio->wasChanged('estado')) {
             $mensaje = "El convenio {$convenio->codigo} pasó de {$convenio->getOriginal('estado')} a {$convenio->estado}.";
+
+            // Asignación a un revisor concreto
+            if ($convenio->estado === 'revision' && $convenio->revisorAsignado) {
+                // El decano recibe el aviso de siempre; los demás revisores no
+                $this->notificar($convenio, 'cambio_datos', 'Cambio en un convenio', $mensaje);
+
+                // Y el revisor elegido recibe un aviso propio, con el fundamento
+                $this->notificarUsuario(
+                    $convenio->revisorAsignado,
+                    $convenio,
+                    'cambio_datos',
+                    'Convenio asignado para revisión',
+                    "Se te asignó el convenio {$convenio->codigo}: {$convenio->titulo}. Fundamento: {$convenio->fundamentoCambio}"
+                );
+                return;
+            }
+
             $extra = self::ROLES_POR_ESTADO[$convenio->estado] ?? [];
         } else {
             $mensaje = "Se modificaron datos del convenio {$convenio->codigo}.";
@@ -111,5 +128,26 @@ class ConvenioObserver
                 'titulo'      => $titulo,
                 'mensaje'     => $mensaje,
             ]));
+    }
+
+    private function notificarUsuario(int $userId, Convenio $convenio, string $tipo, string $titulo, string $mensaje): void
+    {
+        // En seeders y tinker no se generan notificaciones.
+        if (app()->runningInConsole()) {
+            return;
+        }
+
+        // Quien hace el cambio no se notifica a sí mismo.
+        if ($userId === request()->user()?->id) {
+            return;
+        }
+
+        Notificacion::create([
+            'user_id'     => $userId,
+            'convenio_id' => $convenio->id,
+            'tipo'        => $tipo,
+            'titulo'      => $titulo,
+            'mensaje'     => $mensaje,
+        ]);
     }
 }
