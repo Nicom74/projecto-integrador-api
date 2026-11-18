@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Api\Convenio;
 use App\Models\Api\TipoInstrumento;
 use App\Models\Api\UnidadResponsable;
 use App\Models\Api\User;
@@ -130,5 +131,46 @@ class ConvenioDraftWorkflowTest extends TestCase
             'estado' => 'revision',
             'revisor_id' => $revisor->id,
         ]);
+    }
+
+    public function test_convenio_listing_includes_status_history_for_returned_drafts(): void
+    {
+        $gestor = User::create([
+            'name' => 'Gestor',
+            'email' => 'gestor@example.test',
+            'password' => 'password',
+            'rol' => 'gestion',
+        ]);
+        $revisor = User::create([
+            'name' => 'Revisor',
+            'email' => 'revisor@example.test',
+            'password' => 'password',
+            'rol' => 'revision',
+        ]);
+        Sanctum::actingAs($gestor);
+
+        $unidad = UnidadResponsable::create(['nombre' => 'Ingeniería', 'tipo' => 'Facultad']);
+        $tipo = TipoInstrumento::create(['nombre' => 'Convenio marco', 'categoria' => 'Colaboración']);
+        $convenio = Convenio::create([
+            'fecha_creacion' => now()->toDateString(),
+            'titulo' => 'Convenio devuelto para corregir',
+            'estado' => 'borrador',
+            'codigo' => 'CONV-DEVUELTO-001',
+            'tipo_instrumento_id' => $tipo->id,
+            'unidad_responsable_id' => $unidad->id,
+        ]);
+        $convenio->historialEstados()->create([
+            'user_id' => $revisor->id,
+            'fundamento' => 'Completar documentación',
+            'fecha_cambio' => now(),
+            'estado_anterior' => 'revision',
+            'estado_nuevo' => 'borrador',
+        ]);
+
+        $this->getJson('/api/convenios?estado=borrador')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $convenio->id)
+            ->assertJsonPath('data.0.historial_estados.0.estado_anterior', 'revision')
+            ->assertJsonPath('data.0.historial_estados.0.estado_nuevo', 'borrador');
     }
 }
