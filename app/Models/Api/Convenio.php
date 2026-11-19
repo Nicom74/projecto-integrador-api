@@ -27,7 +27,7 @@ class Convenio extends Model
     protected $fillable = [
         'fecha_creacion', 'fecha_vencimiento', 'firma_decano', 'titulo',
         'estado', 'codigo', 'convenio_padre_id', 'tipo_instrumento_id',
-        'unidad_responsable_id', 'revisor_id',
+        'unidad_responsable_id', 'unidad_responsable_secundaria_id', 'revisor_id',
     ];
 
     protected $casts = [
@@ -38,6 +38,7 @@ class Convenio extends Model
     // Relaciones
     public function tipoInstrumento() { return $this->belongsTo(TipoInstrumento::class); }
     public function unidad()           { return $this->belongsTo(UnidadResponsable::class, 'unidad_responsable_id'); }
+    public function unidadResponsableSecundaria() { return $this->belongsTo(UnidadResponsable::class, 'unidad_responsable_secundaria_id'); }
     public function revisor()          { return $this->belongsTo(User::class, 'revisor_id'); }
     public function padre()           { return $this->belongsTo(Convenio::class, 'convenio_padre_id'); }
     public function adendas()         { return $this->hasMany(Convenio::class, 'convenio_padre_id'); }

@@ -7,6 +7,7 @@ use App\Models\Api\TipoInstrumento;
 use App\Models\Api\UnidadResponsable;
 use App\Models\Api\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -50,12 +51,60 @@ class UserManagementTest extends TestCase
         Sanctum::actingAs($manager);
 
         $this->getJson('/api/users/manage')->assertForbidden();
+        $this->postJson('/api/users/manage', [
+            'name' => 'Nuevo usuario',
+            'email' => 'nuevo@example.test',
+            'rol' => 'consulta',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertForbidden();
         $this->putJson("/api/users/manage/{$target->id}", [
             'name' => 'Usuario modificado',
             'email' => 'usuario@example.test',
             'rol' => 'consulta',
         ])->assertForbidden();
         $this->deleteJson("/api/users/manage/{$target->id}")->assertForbidden();
+    }
+
+    public function test_admin_can_create_a_user_with_a_role_and_hashed_password(): void
+    {
+        $admin = $this->createUser('Admin', 'admin@example.test', 'administracion');
+        Sanctum::actingAs($admin);
+
+        $response = $this->postJson('/api/users/manage', [
+            'name' => 'Nuevo usuario',
+            'email' => 'nuevo@example.test',
+            'rol' => 'gestion',
+            'telefono' => '2302-555555',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertCreated()
+            ->assertJsonPath('name', 'Nuevo usuario')
+            ->assertJsonPath('rol', 'gestion')
+            ->assertJsonPath('telefono', '2302-555555')
+            ->assertJsonMissingPath('password');
+
+        $createdUser = User::findOrFail($response->json('id'));
+        $this->assertSame('nuevo@example.test', $createdUser->email);
+        $this->assertSame('gestion', $createdUser->rol);
+        $this->assertTrue(Hash::check('password123', $createdUser->password));
+    }
+
+    public function test_admin_cannot_create_a_user_with_invalid_role_or_unconfirmed_password(): void
+    {
+        $admin = $this->createUser('Admin', 'admin@example.test', 'administracion');
+        Sanctum::actingAs($admin);
+
+        $this->postJson('/api/users/manage', [
+            'name' => 'Nuevo usuario',
+            'email' => 'nuevo@example.test',
+            'rol' => 'rol-invalido',
+            'password' => 'password123',
+            'password_confirmation' => 'diferente123',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['rol', 'password']);
+
+        $this->assertDatabaseMissing('users', ['email' => 'nuevo@example.test']);
     }
 
     public function test_admin_can_update_and_delete_a_user(): void

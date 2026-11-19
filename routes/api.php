@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/manage', [UserController::class, 'manageIndex']);
+    Route::post('/users/manage', [UserController::class, 'store']);
     Route::put('/users/manage/{user}', [UserController::class, 'update']);
     Route::delete('/users/manage/{user}', [UserController::class, 'destroy']);
     Route::apiResource('convenios', ConvenioController::class); //Aca genera todas las rutas para ver, crear, eliminar, modificar los convenios (aca, al modificar un convenio y cambiar el estado se guarda tambien en HistorialEstado)

@@ -49,6 +49,7 @@ class ConvenioController extends Controller
             'convenio_padre_id' => 'nullable|exists:convenios,id',
             'tipo_instrumento_id' => 'required|exists:tipo_instrumentos,id',
             'unidad_id' => 'required|exists:unidad_responsables,id',
+            'unidad_responsable_secundaria_id' => 'required|integer|exists:unidad_responsables,id|different:unidad_id',
             'representantes' => 'sometimes|array',
             'representantes.*.nombre' => 'nullable|string|max:45',
             'representantes.*.apellido' => 'nullable|string|max:45',
@@ -77,6 +78,7 @@ class ConvenioController extends Controller
                 'convenio_padre_id' => $datos['convenio_padre_id'] ?? null,
                 'tipo_instrumento_id' => $datos['tipo_instrumento_id'],
                 'unidad_responsable_id' => $datos['unidad_id'],
+                'unidad_responsable_secundaria_id' => $datos['unidad_responsable_secundaria_id'],
             ]);
 
             foreach ($datos['representantes'] ?? [] as $representante) {
@@ -106,7 +108,13 @@ class ConvenioController extends Controller
                 ]);
             }
 
-            return $convenio->load(['tipoInstrumento', 'unidad', 'representantes', 'detallePasantia']);
+            return $convenio->load([
+                'tipoInstrumento',
+                'unidad',
+                'unidadResponsableSecundaria',
+                'representantes',
+                'detallePasantia',
+            ]);
         });
 
         return response()->json($convenio, 201);
@@ -120,6 +128,7 @@ class ConvenioController extends Controller
         return $convenio->load([
             'tipoInstrumento',
             'unidad',
+            'unidadResponsableSecundaria',
             'revisor',
             'representantes',
             'documentos',
@@ -160,8 +169,26 @@ class ConvenioController extends Controller
             $convenio = Convenio::lockForUpdate()->findOrFail($convenio->id);
             $anterior = $convenio->estado;
             $cambiaEstado = isset($datos['estado']) && $datos['estado'] !== $anterior;
+            $rol = strtolower((string) $request->user()->rol);
+
+            if (
+                array_key_exists('firma_decano', $datos)
+                && ! in_array($rol, ['administracion', 'administrador', 'admin'], true)
+            ) {
+                abort(403, 'Solo Administración puede registrar la firma del convenio.');
+            }
 
             if ($cambiaEstado) {
+                if ($datos['estado'] === 'aprobado' && $rol !== 'revision') {
+                    abort(403, 'Solo un usuario de Revisión puede aprobar el convenio.');
+                }
+                if (
+                    $datos['estado'] === 'firmado'
+                    && ! in_array($rol, ['administracion', 'administrador', 'admin'], true)
+                ) {
+                    abort(403, 'Solo Administración puede firmar el convenio.');
+                }
+
                 if (! in_array($datos['estado'], Convenio::TRANSICIONES[$anterior] ?? [])) {
                     throw ValidationException::withMessages([
                         'estado' => ["No se puede pasar de '{$anterior}' a '{$datos['estado']}'."],
@@ -174,14 +201,24 @@ class ConvenioController extends Controller
                     ]);
                 }
 
-                if ($datos['estado'] === 'aprobado' && $convenio->representantes()->count() < 2) {
+                if (
+                    $datos['estado'] === 'aprobado'
+                    && (
+                        ! $convenio->unidad_responsable_id
+                        || ! $convenio->unidad_responsable_secundaria_id
+                        || (string) $convenio->unidad_responsable_id === (string) $convenio->unidad_responsable_secundaria_id
+                    )
+                ) {
                     throw ValidationException::withMessages([
-                        'estado' => ['Para aprobar el convenio deben existir al menos dos partes.'],
+                        'estado' => ['Para aprobar el convenio debe tener dos unidades responsables distintas.'],
                     ]);
                 }
 
                 if ($datos['estado'] === 'borrador') {
                     $datos['revisor_id'] = null;
+                }
+                if ($datos['estado'] === 'firmado') {
+                    $datos['firma_decano'] = true;
                 }
             }
 
@@ -204,7 +241,7 @@ class ConvenioController extends Controller
             return $convenio;
         });
 
-        return $convenio->load(['tipoInstrumento', 'unidad', 'revisor']);
+        return $convenio->load(['tipoInstrumento', 'unidad', 'unidadResponsableSecundaria', 'revisor']);
     }
 
     /**

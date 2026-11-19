@@ -31,6 +31,23 @@ class UserController extends Controller
             ->get(['id', 'name', 'email', 'rol', 'telefono']);
     }
 
+    public function store(Request $request)
+    {
+        $this->authorizeAdministrator($request);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'rol' => ['required', Rule::in(self::ROLES)],
+            'telefono' => 'nullable|string|max:45',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create($data);
+
+        return response()->json($user->only(['id', 'name', 'email', 'rol', 'telefono']), 201);
+    }
+
     public function update(Request $request, User $user)
     {
         $this->authorizeAdministrator($request);

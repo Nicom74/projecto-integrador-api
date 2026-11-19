@@ -19,9 +19,9 @@ class ConvenioObserver
     private const ROLES_POR_ESTADO = [
         'revision' => ['revision'],                    // hay un convenio para revisar
         'borrador' => ['gestion'],                     // devuelto con observaciones
-        'aprobado' => ['gestion', 'administracion'],
-        'firmado' => ['gestion', 'administracion', 'consulta'],
-        'rescindido' => ['gestion', 'administracion'],
+        'aprobado' => ['gestion', 'administracion', 'administrador', 'admin'],
+        'firmado' => ['gestion', 'administracion', 'administrador', 'admin', 'consulta'],
+        'rescindido' => ['gestion', 'administracion', 'administrador', 'admin'],
         'archivado' => ['gestion'],
     ];
 
@@ -100,7 +100,7 @@ class ConvenioObserver
         ?int $destinatarioId = null
     ): void {
         // En seeders y tinker no se generan notificaciones.
-        if (app()->runningInConsole()) {
+        if (app()->runningInConsole() && ! app()->runningUnitTests()) {
             return;
         }
 
@@ -133,7 +133,7 @@ class ConvenioObserver
     private function notificarUsuario(int $userId, Convenio $convenio, string $tipo, string $titulo, string $mensaje): void
     {
         // En seeders y tinker no se generan notificaciones.
-        if (app()->runningInConsole()) {
+        if (app()->runningInConsole() && ! app()->runningUnitTests()) {
             return;
         }
 
