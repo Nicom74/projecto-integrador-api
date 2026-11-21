@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\UnidadResponsableController;
 use App\Http\Controllers\Api\PersonaVinculadaController;
 use App\Http\Controllers\Api\NotificacionController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\FirmaController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -43,4 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('revisores', [UserController::class, 'revisores']);
 
     Route::apiResource('users', UserController::class)->only(['index']);
+
+    //Firmas
+    Route::get('convenios/{convenio}/firma', [FirmaController::class, 'show']);
+    Route::post('convenios/{convenio}/firma', [FirmaController::class, 'store']);
+    Route::get('firmas/{firma}/imagen', [FirmaController::class, 'imagen']);
 });
