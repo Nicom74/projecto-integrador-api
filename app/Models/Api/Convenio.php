@@ -7,6 +7,7 @@ use App\Models\Api\HistorialEstado;
 use App\Models\Api\DetallePasantia;
 use App\Models\Api\Representante;
 use App\Models\Api\TipoInstrumento;
+use App\Models\Api\Firma;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -48,6 +49,8 @@ class Convenio extends Model
     public function documentos()        { return $this->hasMany(Documento::class); }
     public function historialEstados()  { return $this->hasMany(HistorialEstado::class); }
     public function detallePasantia()   { return $this->hasOne(DetallePasantia::class); }
+
+    public function firmas() { return $this->hasMany(Firma::class); }
 
     // Filtros de búsqueda
     public function scopeFiltrar(Builder $query, array $f): Builder
