@@ -52,6 +52,8 @@ class Convenio extends Model
 
     public function firmas() { return $this->hasMany(Firma::class); }
 
+    public function comentarios() { return $this->hasMany(Comentario::class); }
+
     // Filtros de búsqueda
     public function scopeFiltrar(Builder $query, array $f): Builder
     {

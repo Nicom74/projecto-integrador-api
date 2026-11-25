@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\PersonaVinculadaController;
 use App\Http\Controllers\Api\NotificacionController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\FirmaController;
+use App\Http\Controllers\Api\ComentarioController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -49,4 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('convenios/{convenio}/firma', [FirmaController::class, 'show']);
     Route::post('convenios/{convenio}/firma', [FirmaController::class, 'store']);
     Route::get('firmas/{firma}/imagen', [FirmaController::class, 'imagen']);
+
+    Route::get('convenios/{convenio}/comentarios', [ComentarioController::class, 'index']);
+    Route::post('convenios/{convenio}/comentarios', [ComentarioController::class, 'store']);
 });
